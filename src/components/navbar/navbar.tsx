@@ -26,14 +26,24 @@ export function Navbar() {
 
         <div className="flex gap-1">
           {!user ? (
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                asChild
-                className={navigationMenuTriggerStyle()}
-              >
-                <Link href="/auth/login">LOGIN</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                >
+                  <Link href="/auth/login">LOGIN</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                >
+                  <Link href="/auth/signup">SIGN UP</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </>
           ) : (
             <UserNavbar />
           )}
