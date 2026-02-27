@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function AuthProvider({ children }: Props) {
-  const { setAuth } = useAuthStore();
+  const { setAuth, setIsLoading } = useAuthStore();
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -28,11 +28,13 @@ export function AuthProvider({ children }: Props) {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getCurrentUser();
-  }, [setAuth]);
+  }, [setAuth, setIsLoading]);
 
   return <>{children}</>;
 }

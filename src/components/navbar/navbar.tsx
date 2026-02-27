@@ -1,6 +1,6 @@
 "use client";
 
-import { UsersIcon } from "lucide-react";
+import { FilesIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import {
   NavigationMenu,
@@ -13,6 +13,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { UserNavbar } from "./user-navbar";
+
 export function Navbar() {
   const { auth } = useAuthStore();
 
@@ -28,7 +29,6 @@ export function Navbar() {
               <Link href="/">socmed-frontend-sample</Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
-
           {!auth ? (
             <>
               <NavigationMenuItem>
@@ -49,17 +49,30 @@ export function Navbar() {
               </NavigationMenuItem>
             </>
           ) : (
-            <NavigationMenuItem>
-              <Button
-                asChild
-                className={navigationMenuTriggerStyle()}
-                variant="ghost"
-              >
-                <Link href="/users">
-                  <UsersIcon /> Users
-                </Link>
-              </Button>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <Button
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                  variant="ghost"
+                >
+                  <Link href="/users">
+                    <UsersIcon /> USERS
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Button
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                  variant="ghost"
+                >
+                  <Link href="/posts">
+                    <FilesIcon /> POSTS
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+            </>
           )}
         </div>
 

@@ -24,13 +24,15 @@ interface User {
 
 export default function Users() {
   const router = useRouter();
-  const { auth } = useAuthStore();
+  const { auth, isLoading } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    if (!auth) {
-      router.push("/");
-      return;
+    if (!isLoading) {
+      if (!auth) {
+        router.push("/");
+        return;
+      }
     }
 
     async function getUsers() {
@@ -53,7 +55,7 @@ export default function Users() {
       }
     }
     getUsers();
-  }, [auth, router]);
+  }, [auth, router, isLoading]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mx-2">

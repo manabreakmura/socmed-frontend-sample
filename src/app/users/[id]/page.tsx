@@ -13,17 +13,19 @@ interface User {
 
 export default function User() {
   const router = useRouter();
-  const { auth } = useAuthStore();
+  const { auth, isLoading } = useAuthStore();
   const [user, setUser] = useState<User>();
   const params = useParams<{ id: string }>();
 
   useEffect(() => {
-    if (!auth) {
-      router.push("/");
-      return;
+    if (!isLoading) {
+      if (!auth) {
+        router.push("/");
+        return;
+      }
     }
 
-    async function getUsers() {
+    async function getUser() {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${params.id}`,
@@ -42,8 +44,8 @@ export default function User() {
         console.error(err);
       }
     }
-    getUsers();
-  }, [auth, router, params]);
+    getUser();
+  }, [auth, router, params, isLoading]);
 
   return (
     <Card className="w-full max-w-sm mx-2">
