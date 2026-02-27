@@ -1,24 +1,34 @@
 "use client";
 
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import { useAuthStore } from "@/store/auth-store";
 
-export default function Users() {
-  interface User {
-    id: number;
-    username: string;
-    created_at: string;
-  }
+interface User {
+  id: number;
+  username: string;
+  created_at: string;
+}
 
+export default function Users() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { auth } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    if (!user) {
+    if (!auth) {
       router.push("/");
       return;
     }
@@ -43,21 +53,37 @@ export default function Users() {
       }
     }
     getUsers();
-  }, [user, router]);
+  }, [auth, router]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 mx-1">
+    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mx-2">
       {users.map((user) => (
-        <Card className="mx-auto w-full" key={user.id}>
-          <CardHeader>
-            <CardTitle>{user.username}</CardTitle>
-          </CardHeader>
-          <CardFooter>
-            <Button variant="outline" size="sm" className="w-full">
-              Follow
+        <Item variant="outline" key={user.id}>
+          <ItemMedia>
+            <Avatar className="size-10">
+              <AvatarImage src="#" />
+              <AvatarFallback>
+                {user.username.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>
+              <Link href={`/users/${user.id}`}>{user.username}</Link>
+            </ItemTitle>
+            <ItemDescription>Last seen 5 months ago</ItemDescription>
+          </ItemContent>
+          <ItemActions>
+            <Button
+              size="icon-sm"
+              variant="outline"
+              className="rounded-full"
+              aria-label="Invite"
+            >
+              <Plus />
             </Button>
-          </CardFooter>
-        </Card>
+          </ItemActions>
+        </Item>
       ))}
     </div>
   );
