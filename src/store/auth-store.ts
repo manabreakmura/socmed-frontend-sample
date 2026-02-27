@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 type State = {
-  user: {
+  auth: {
     id: number;
     email: string;
     username: string;
@@ -9,10 +9,10 @@ type State = {
 };
 
 type Action = {
-  setUser: (user: State["user"]) => void;
+  setAuth: (auth: State["auth"]) => void;
 };
 
 export const useAuthStore = create<State & Action>((set) => ({
-  user: null,
-  setUser: (user) => set({ user }),
+  auth: null,
+  setAuth: (auth) => set({ auth }),
 }));

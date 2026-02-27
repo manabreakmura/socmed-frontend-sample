@@ -15,17 +15,17 @@ import { useAuthStore } from "@/store/auth-store";
 
 export default function Signup() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { auth } = useAuthStore();
   const [email, setEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   useEffect(() => {
-    if (user) {
+    if (auth) {
       router.push("/");
     }
-  }, [user, router]);
+  }, [auth, router]);
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();

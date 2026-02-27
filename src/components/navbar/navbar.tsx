@@ -14,7 +14,7 @@ import { Button } from "../ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { UserNavbar } from "./user-navbar";
 export function Navbar() {
-  const { user } = useAuthStore();
+  const { auth } = useAuthStore();
 
   return (
     <NavigationMenu className="h-12">
@@ -29,7 +29,7 @@ export function Navbar() {
             </NavigationMenuLink>
           </NavigationMenuItem>
 
-          {!user ? (
+          {!auth ? (
             <>
               <NavigationMenuItem>
                 <NavigationMenuLink
@@ -64,7 +64,7 @@ export function Navbar() {
         </div>
 
         <div>
-          {user ? <UserNavbar /> : ""}
+          {auth ? <UserNavbar /> : ""}
           <ThemeToggle />
         </div>
       </NavigationMenuList>

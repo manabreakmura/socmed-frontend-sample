@@ -1,4 +1,5 @@
 import { EllipsisVertical } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,7 @@ import { useAuthStore } from "@/store/auth-store";
 
 export function UserNavbar() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { auth, setAuth } = useAuthStore();
 
   async function logout() {
     try {
@@ -27,7 +28,7 @@ export function UserNavbar() {
       );
 
       if (response.ok) {
-        setUser(null);
+        setAuth(null);
         router.push("/");
       }
     } catch (err) {
@@ -44,7 +45,9 @@ export function UserNavbar() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-32">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            <Link href={`/users/${auth?.id}`}>{auth?.username}</Link>
+          </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
