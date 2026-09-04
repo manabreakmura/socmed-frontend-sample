@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Navbar } from "@/components/navbar";
+import { Toaster } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -42,7 +46,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <QueryProvider>
+            <Navbar />
+            {children}
+            <Toaster />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
