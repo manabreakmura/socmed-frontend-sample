@@ -19,7 +19,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { useSignin } from "@/lib/auth";
+import { useSignin } from "@/hooks/auth-hooks";
 
 export const schema = z.object({
   username: z
@@ -46,7 +46,7 @@ export default function SigninPage() {
         method="POST"
         className="max-w-md w-full"
       >
-        <Card>
+        <Card className="border-2 border-primary">
           <CardContent>
             <FieldGroup>
               <Field>

@@ -19,7 +19,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { useSignup } from "@/lib/auth";
+import { useSignup } from "@/hooks/auth-hooks";
 
 export const schema = z.object({
   email: z.email(),
@@ -47,7 +47,7 @@ export default function SigninPage() {
         method="POST"
         className="max-w-md w-full"
       >
-        <Card>
+        <Card className="border-2 border-primary">
           <CardContent>
             <FieldGroup>
               <Field>
@@ -109,7 +109,7 @@ export default function SigninPage() {
               type="submit"
               disabled={form.formState.isSubmitting}
             >
-              Signin
+              Signup
             </Button>
           </CardFooter>
         </Card>
