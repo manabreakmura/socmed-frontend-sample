@@ -1,17 +1,19 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toFormData } from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
-import { http } from "./http";
+import { http } from "../lib/http";
 
 export function useSignin() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: { username: string; password: string }) => {
       return await http.post("/api/v1/auth/signin", toFormData(payload));
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
       router.push("/");
     },
     onError: (error) => {
@@ -26,6 +28,7 @@ export function useSignin() {
 
 export function useSignup() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -36,12 +39,13 @@ export function useSignup() {
       return await http.post("/api/v1/auth/signup", payload);
     },
     onSuccess: () => {
-      router.push("/");
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      router.push("/signin");
     },
     onError: (error) => {
       toast.add({
         title: "Error:",
-        description: error.message,
+        description: JSON.stringify(error.message),
         type: "error",
       });
     },
@@ -62,18 +66,20 @@ export function useMe() {
 
 export function useSignout() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       return await http.post("/api/v1/auth/signout");
     },
     onSuccess: () => {
-      router.push("/");
+      queryClient.clear();
+      router.push("/signin");
     },
     onError: (error) => {
       toast.add({
         title: "Error:",
-        description: error.message,
+        description: JSON.stringify(error.message),
         type: "error",
       });
     },

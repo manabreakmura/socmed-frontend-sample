@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Navbar } from "@/components/navbar";
+import { NavbarComponent } from "@/components/navbar-components";
 import { Toaster } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { QueryProvider } from "@/providers/query-provider";
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <QueryProvider>
-            <Navbar />
+            <NavbarComponent />
             {children}
             <Toaster />
             <ReactQueryDevtools initialIsOpen={false} />
