@@ -27,6 +27,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "./ui/input-group";
+import { Skeleton } from "./ui/skeleton";
 
 export function CommentComponent({
   post_id,
@@ -36,7 +37,7 @@ export function CommentComponent({
   comment: Comment;
 }) {
   const { data: me } = useMe();
-  const { mutate } = useDeleteComment();
+  const { mutate: submit } = useDeleteComment();
 
   return (
     <div>
@@ -56,11 +57,11 @@ export function CommentComponent({
                 </Button>
               }
             />
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() =>
-                  mutate({ post_id: post_id, comment_id: comment.id })
+                  submit({ post_id: post_id, comment_id: comment.id })
                 }
               >
                 <Trash />
@@ -78,8 +79,54 @@ export function CommentComponent({
   );
 }
 
+export function CommentsComponent({
+  post_id,
+  query,
+}: {
+  query: UseInfiniteQueryResult<InfiniteData<Comment[]>, Error>;
+  post_id: string;
+}) {
+  if (query.isLoading) {
+    return <CommentsPlaceholderComponent />;
+  }
+
+  if (!query.data?.pages.flat().length) {
+    return (
+      <Card className="border-2 border-primary ring-0 mb-2">
+        <CardContent>No Comments</CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="flex flex-col">
+      <Card className="border-2 border-primary ring-0 mb-2">
+        <CardContent>
+          {query.data?.pages.flat().map((comment) => (
+            <CommentComponent
+              key={comment.id}
+              post_id={post_id}
+              comment={comment}
+            />
+          ))}
+        </CardContent>
+      </Card>
+
+      {query.hasNextPage && (
+        <Button
+          className="mx-auto mb-2"
+          onClick={() => query.fetchNextPage()}
+          disabled={query.isFetchingNextPage}
+        >
+          {query.isFetchingNextPage ? "Loading..." : "Load more"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function CreateCommentComponent({ post_id }: { post_id: string }) {
-  const { mutate, isPending } = useCreateComment(post_id);
+  const { mutate: submit, isPending: is_pending } = useCreateComment(post_id);
 
   const form = useForm({
     resolver: zodResolver(
@@ -96,7 +143,7 @@ export function CreateCommentComponent({ post_id }: { post_id: string }) {
   return (
     <form
       onSubmit={form.handleSubmit((payload) => {
-        mutate(payload, {
+        submit(payload, {
           onSuccess: () => {
             form.reset();
           },
@@ -110,7 +157,7 @@ export function CreateCommentComponent({ post_id }: { post_id: string }) {
           control={form.control}
           render={({ field }) => (
             <Field>
-              <InputGroup className="border-2 border-primary">
+              <InputGroup className="border-2 border-primary focus-within:border-primary! focus-within:ring-0!">
                 <InputGroupTextarea
                   id="body"
                   placeholder="Add a comment..."
@@ -123,7 +170,7 @@ export function CreateCommentComponent({ post_id }: { post_id: string }) {
                     size="sm"
                     type="submit"
                     className="ml-auto"
-                    disabled={isPending}
+                    disabled={is_pending}
                   >
                     Comment
                   </InputGroupButton>
@@ -137,37 +184,13 @@ export function CreateCommentComponent({ post_id }: { post_id: string }) {
   );
 }
 
-export function CommentsComponent({
-  post_id,
-  query,
-}: {
-  query: UseInfiniteQueryResult<InfiniteData<Comment[]>, Error>;
-  post_id: string;
-}) {
-  const comments = query.data?.pages.flat() ?? [];
-
+export function CommentsPlaceholderComponent() {
   return (
-    <div className="flex flex-col">
-      {comments.length > 0 && (
-        <Card className="border-2 border-primary mb-2">
-          <CardContent>
-            {comments.map((comment) => (
-              <div key={comment.id}>
-                <CommentComponent post_id={post_id} comment={comment} />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-      {query.hasNextPage && (
-        <Button
-          className="mx-auto mb-2"
-          onClick={() => query.fetchNextPage()}
-          disabled={query.isFetchingNextPage}
-        >
-          {query.isFetchingNextPage ? "Loading..." : "Load more"}
-        </Button>
-      )}
-    </div>
+    <Card className="border-2 border-primary ring-0 mb-2">
+      <CardContent className="flex flex-col gap-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+      </CardContent>
+    </Card>
   );
 }

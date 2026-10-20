@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type {
   InfiniteData,
   UseInfiniteQueryResult,
+  UseQueryResult,
 } from "@tanstack/react-query";
 import {
   Bookmark,
@@ -43,7 +44,6 @@ import {
 } from "@/hooks/posts-hooks";
 import type { Post } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Field, FieldError, FieldGroup } from "./ui/field";
 import {
@@ -52,101 +52,23 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "./ui/input-group";
+import { AvatarSmallComponent } from "./users-components";
 
-export function CreatePostComponent() {
-  const { mutate: submit, isPending: is_pending } = useCreatePost();
-  const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        body: z
-          .string()
-          .min(1, "Post must be at least 1 character.")
-          .max(2000, "Post must be at most 2000 characters."),
-      }),
-    ),
-    defaultValues: { body: "" },
-  });
-
-  return (
-    <form
-      onSubmit={form.handleSubmit((payload) =>
-        submit(payload, {
-          onSuccess: () => {
-            form.reset();
-          },
-        }),
-      )}
-      method="POST"
-      className="mb-2"
-    >
-      <Controller
-        name="body"
-        control={form.control}
-        render={({ field }) => (
-          <Field>
-            <InputGroup className="border-2 border-primary">
-              <InputGroupTextarea
-                id="body"
-                placeholder="Add a post..."
-                {...field}
-                maxLength={2000}
-              />
-              <InputGroupAddon align="block-end">
-                <InputGroupButton
-                  variant="default"
-                  size="sm"
-                  className="ml-auto"
-                  type="submit"
-                  disabled={is_pending}
-                >
-                  Post
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </Field>
-        )}
-      />
-    </form>
-  );
-}
-
-export function PostComponent({ post }: { post: Post }) {
+export function PostContainerComponent({ post }: { post: Post }) {
   const { data: me } = useMe();
   const { mutate: del } = useDeletePost();
-  const { mutate: update } = useUpdatePost();
   const { mutate: like } = useLikePost();
   const { mutate: bookmark } = useBookmarkPost();
-  const [isEditing, setIsEditing] = useState(false);
-
-  const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        body: z
-          .string()
-          .min(1, "Post must be at least 1 character.")
-          .max(2000, "Post must be at most 2000 characters."),
-      }),
-    ),
-    defaultValues: { body: post.body },
-  });
+  const [is_editing, set_is_editing] = useState(false);
 
   return (
-    <Card className="border-2 border-primary mb-2">
+    <Card className="border-2 border-primary ring-0 mb-2">
       <CardHeader>
         <CardTitle className="flex gap-2 justify-between items-center">
           <div className="flex gap-2">
             <Link href={`/${post.user.id}`}>
-              <Avatar size="lg">
-                <AvatarImage
-                  src="#"
-                  alt={post.user.username.slice(0, 2).toUpperCase()}
-                />
-                <AvatarFallback>
-                  {post.user.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <AvatarSmallComponent />
             </Link>
-
             <div className="flex flex-col">
               <Link href={`/${post.user.id}`}>{post.user.username}</Link>
               <div className="text-xs text-muted-foreground">
@@ -166,8 +88,8 @@ export function PostComponent({ post }: { post: Post }) {
                   </Button>
                 }
               />
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => set_is_editing(true)}>
                   <Pencil />
                   Edit
                 </DropdownMenuItem>
@@ -185,43 +107,12 @@ export function PostComponent({ post }: { post: Post }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!isEditing && <div className="wrap-break-word">{post.body}</div>}
-        {isEditing && (
-          <form
-            onSubmit={form.handleSubmit((payload) =>
-              update(
-                { post_id: post.id, payload },
-                {
-                  onSuccess: () => {
-                    form.reset({ body: payload.body });
-                    setIsEditing(false);
-                  },
-                },
-              ),
-            )}
-          >
-            <FieldGroup>
-              <Field>
-                <InputGroup>
-                  <InputGroupTextarea id="body" {...form.register("body")} />
-                </InputGroup>
-                {form.formState.errors.body && (
-                  <FieldError>{form.formState.errors.body.message}</FieldError>
-                )}
-              </Field>
-            </FieldGroup>
-            <div className="flex justify-between gap-2">
-              <Button
-                className="w-auto mt-2"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </Button>
-              <Button className="w-auto mt-2" type="submit">
-                Confirm
-              </Button>
-            </div>
-          </form>
+        {!is_editing && <div className="wrap-break-word">{post.body}</div>}
+        {is_editing && (
+          <UpdatePostComponent
+            post={post}
+            close={() => set_is_editing(false)}
+          />
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -258,8 +149,7 @@ export function PostComponent({ post }: { post: Post }) {
           <Bookmark
             className={cn(
               "size-6",
-              post.is_bookmarked &&
-                "fill-accent-foreground text-accent-foreground",
+              post.is_bookmarked && "fill-gray-200 text-gray-200",
             )}
           />
         </Button>
@@ -268,25 +158,47 @@ export function PostComponent({ post }: { post: Post }) {
   );
 }
 
+export function PostComponent({
+  query,
+}: {
+  query: UseQueryResult<Post, Error>;
+}) {
+  if (query.isLoading) {
+    return <PostPlaceholderComponent />;
+  }
+
+  if (!query.data) {
+    return (
+      <Card className="border-2 border-primary ring-0 mb-2">
+        <CardContent className="text-center">Post Not Found</CardContent>
+      </Card>
+    );
+  }
+
+  return <PostContainerComponent post={query.data} />;
+}
+
 export function PostsComponent({
   query,
 }: {
   query: UseInfiniteQueryResult<InfiniteData<Post[]>, Error>;
 }) {
-  const posts = query.data?.pages.flat() ?? [];
-
   if (query.isLoading) {
-    return <LoadingPostComponent />;
+    return <PostPlaceholderComponent />;
   }
 
-  if (!posts?.length) {
-    return <EmptyPostComponent />;
+  if (!query.data?.pages.flat().length) {
+    return (
+      <Card className="border-2 border-primary ring-0 mb-2">
+        <CardContent className="text-center">No Posts</CardContent>
+      </Card>
+    );
   }
 
   return (
     <div className="flex flex-col">
-      {posts.map((post) => (
-        <PostComponent key={post.id} post={post} />
+      {query.data?.pages.flat().map((post) => (
+        <PostContainerComponent key={post.id} post={post} />
       ))}
       {query.hasNextPage && (
         <Button
@@ -301,9 +213,124 @@ export function PostsComponent({
   );
 }
 
-export function LoadingPostComponent() {
+export function CreatePostComponent() {
+  const { mutate: submit, isPending: is_pending } = useCreatePost();
+
+  const form = useForm({
+    resolver: zodResolver(
+      z.object({
+        body: z
+          .string()
+          .min(1, "Post must be at least 1 character.")
+          .max(2000, "Post must be at most 2000 characters."),
+      }),
+    ),
+    defaultValues: { body: "" },
+  });
+
   return (
-    <Card className="border-2 border-primary mb-2">
+    <form
+      onSubmit={form.handleSubmit((payload) =>
+        submit(payload, {
+          onSuccess: () => {
+            form.reset();
+          },
+        }),
+      )}
+      method="POST"
+      className="mb-2"
+    >
+      <Controller
+        name="body"
+        control={form.control}
+        render={({ field }) => (
+          <Field>
+            <InputGroup className="border-2 border-primary focus-within:border-primary! focus-within:ring-0!">
+              <InputGroupTextarea
+                id="body"
+                placeholder="Add a post..."
+                {...field}
+                maxLength={2000}
+              />
+              <InputGroupAddon align="block-end">
+                <InputGroupButton
+                  variant="default"
+                  size="sm"
+                  className="ml-auto"
+                  type="submit"
+                  disabled={is_pending}
+                >
+                  Post
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+        )}
+      />
+    </form>
+  );
+}
+
+export function UpdatePostComponent({
+  post,
+  close,
+}: {
+  post: Post;
+  close: () => void;
+}) {
+  const { mutate: submit } = useUpdatePost();
+
+  const form = useForm({
+    resolver: zodResolver(
+      z.object({
+        body: z
+          .string()
+          .min(1, "Post must be at least 1 character.")
+          .max(2000, "Post must be at most 2000 characters."),
+      }),
+    ),
+    defaultValues: { body: post.body },
+  });
+
+  return (
+    <form
+      onSubmit={form.handleSubmit((payload) =>
+        submit(
+          { post_id: post.id, payload },
+          {
+            onSuccess: () => {
+              form.reset({ body: payload.body });
+              close();
+            },
+          },
+        ),
+      )}
+    >
+      <FieldGroup>
+        <Field>
+          <InputGroup className="border-2 border-primary focus-within:border-primary! focus-within:ring-0!">
+            <InputGroupTextarea id="body" {...form.register("body")} />
+          </InputGroup>
+          {form.formState.errors.body && (
+            <FieldError>{form.formState.errors.body.message}</FieldError>
+          )}
+        </Field>
+      </FieldGroup>
+      <div className="flex justify-between gap-2">
+        <Button className="w-auto mt-2" onClick={() => close()}>
+          Cancel
+        </Button>
+        <Button className="w-auto mt-2" type="submit">
+          Confirm
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export function PostPlaceholderComponent() {
+  return (
+    <Card className="border-2 border-primary ring-0 mb-2">
       <CardHeader>
         <CardTitle>
           <Skeleton className="h-4 w-1/3" />
@@ -321,19 +348,8 @@ export function LoadingPostComponent() {
           <Skeleton className="h-4 w-1/12" />
           <Skeleton className="h-4 w-1/12" />
         </div>
-
         <Skeleton className="h-4 w-1/12" />
       </CardFooter>
-    </Card>
-  );
-}
-
-export function EmptyPostComponent() {
-  return (
-    <Card className="mb-2">
-      <CardContent>
-        <p>No Posts</p>
-      </CardContent>
     </Card>
   );
 }

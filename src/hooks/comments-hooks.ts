@@ -46,6 +46,7 @@ export function useGetComments(post_id: string) {
 
       return all.length * limit;
     },
+    enabled: !!post_id,
   });
 }
 
