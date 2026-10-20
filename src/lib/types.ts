@@ -24,3 +24,10 @@ export type Comment = {
     is_following: boolean;
   };
 };
+
+export type User = {
+  id: string;
+  username: string;
+  created_at: string;
+  is_following: boolean;
+};

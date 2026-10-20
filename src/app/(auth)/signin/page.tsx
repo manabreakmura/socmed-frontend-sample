@@ -46,7 +46,7 @@ export default function SigninPage() {
         method="POST"
         className="max-w-md w-full"
       >
-        <Card className="border-2 border-primary">
+        <Card className="border-2 border-primary ring-0">
           <CardContent>
             <FieldGroup>
               <Field>
